@@ -1,0 +1,20 @@
+# Dependency directories 
+frontend/node_modules/ 
+backend/node_modules/ 
+ 
+# Package lock files
+frontend/package-lock.json
+frontend/yarn.lock
+backend/package-lock.json
+backend/yarn.lock
+
+# Package files
+frontend/package.json
+backend/package.json
+ 
+# env files 
+frontend/.env 
+backend/.env 
+ 
+# IDE settings 
+.vscode/
