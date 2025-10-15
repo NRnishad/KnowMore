@@ -6,15 +6,11 @@ import { connectDB } from '../infrastructure/repositories/dbConnection';
 import authRoutes from '../interfaces/routes/authRoutes'
 import bodyParser from 'body-parser'
 import { errorMiddleWare } from '../interfaces/middlewares/errorMiddleWare';
-
-
 import session from 'express-session';
 import { config } from '../infrastructure/config/config';
 
-
-
 import { createServer } from 'http';
-import { Server } from 'socket.io';
+
 
 const PORT = config.app.PORT
 const app = express();
