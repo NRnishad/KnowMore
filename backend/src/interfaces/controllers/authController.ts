@@ -5,8 +5,11 @@ import { sendOtp } from "../../application/use-cases/user/sendOtp";
 import { CustomError } from "../middlewares/errorMiddleWare";
 import { GetUserDataUseCase } from "../../application/use-cases/user/getUserData";
 import { UserRepositoryImpl } from "../../infrastructure/repositories/userRepositoryImpl";
-
-
+import { LoginUserUseCase } from "../../application/use-cases/user/loginUser";
+import {
+  accessTokenOptions,
+  refreshTokenOptions,
+} from "../../infrastructure/config/jwt";
 const userRepository = new UserRepositoryImpl();
 
 export const signUp = async (
@@ -75,6 +78,31 @@ export const getUserDataController = async (
         success: true,
         user: response,
         message: "User data sent to front end",
+      });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const loginHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+    const loginUseCase = new LoginUserUseCase(userRepository);
+    const response = await loginUseCase.execute(email, password);
+    if (!response) throw new CustomError("Something went wrong", 400);
+    res.cookie("refreshToken", response.refreshToken, refreshTokenOptions);
+    res.cookie("accessToken", response.accessToken, accessTokenOptions);
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        user: response.user,
+        token: response.accessToken,
       });
   } catch (error: any) {
     next(error);
