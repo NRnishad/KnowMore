@@ -6,10 +6,20 @@ import { CustomError } from "../middlewares/errorMiddleWare";
 import { GetUserDataUseCase } from "../../application/use-cases/user/getUserData";
 import { UserRepositoryImpl } from "../../infrastructure/repositories/userRepositoryImpl";
 import { LoginUserUseCase } from "../../application/use-cases/user/loginUser";
+import { refreshAccessToken } from "../../application/use-cases/user/refreshAccessToken";
+import { verifyAccessTokenUseCase } from "../../application/use-cases/user/verifyToken";
+import {
+  resetPassword,
+  sendResetOtp,
+  verifyResendOtp,
+} from "../../application/use-cases/user/resetPassword";
 import {
   accessTokenOptions,
   refreshTokenOptions,
 } from "../../infrastructure/config/jwt";
+import { logout } from "../../application/use-cases/user/logout";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { config } from "../../infrastructure/config/config";
 const userRepository = new UserRepositoryImpl();
 
 export const signUp = async (
@@ -105,6 +115,137 @@ export const loginHandler = async (
         token: response.accessToken,
       });
   } catch (error: any) {
+    next(error);
+  }
+};
+
+
+export const logoutHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //clear cookies for access and refreshtoken
+    res.clearCookie("accessToken", { httpOnly: true, 
+      sameSite: config.app.ENVIRONMENT === 'production' ? "none" : "strict", 
+      secure: config.app.ENVIRONMENT === 'production' });
+    res.clearCookie("refreshToken", { httpOnly: true, 
+      sameSite: config.app.ENVIRONMENT === 'production' ? "none" : "strict", 
+      secure: config.app.ENVIRONMENT === 'production' });
+
+    const message = logout();
+
+    res.status(200).json({ success: true, message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const validateUser = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const accessToken = req.cookies.accessToken;
+  if (!accessToken) {
+    return res.status(401).json({ message: "Access token expired" });
+  }
+  try {
+    const verifyUser = await verifyAccessTokenUseCase(accessToken);
+    return res.status(200).json({ user: verifyUser, message: "User verified" });
+  } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      res.status(401).json({ message: "Access token expired" });
+    } else if (error instanceof JsonWebTokenError) {
+      res.status(401).json({ message: "Invalid access token" });
+    } else {
+      res.status(400).json({ message: "Unauthorized" });
+    }
+  }
+};
+
+export const validateAdmin = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const accessToken = req.cookies.adminAccessToken;
+  if (!accessToken) {
+    return res.status(401).json({ message: "Admin access token expired" });
+  }
+  try {
+    const verifyUser = await verifyAccessTokenUseCase(accessToken);
+    return res
+      .status(200)
+      .json({ user: verifyUser, message: "Admin verified" });
+  } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      res.status(401).json({ message: "Admin access token expired" });
+    } else if (error instanceof JsonWebTokenError) {
+      res.status(401).json({ message: "Invalid admin access token" });
+    } else {
+      res.status(400).json({ message: "Unauthorized" });
+    }
+  }
+};
+
+export const resetPasswordOtpSendHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+    if (!email) throw new CustomError("Email required", 404);
+
+    const sendOtp = await sendResetOtp(email);
+
+    res.status(200).json(sendOtp.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPasswordHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp, password } = req.body;
+
+    if (!email || !otp || !password) {
+      let error: string[] = [];
+      if (!email) error.push("email");
+      if (!otp) error.push("otp");
+      if (!password) error.push("password");
+
+      throw new CustomError(`${error.join(",")} required`, 400);
+    }
+
+    const verifyOtp = await verifyResendOtp(email, otp);
+    const resettedUser = await resetPassword(email, password);
+    console.log(email, "password reset success");
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const refreshTokenHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const token = req.cookies.refreshToken;
+    if(!token) {
+      throw new CustomError('Refresh token not found')
+    }
+    const accessToken = await refreshAccessToken(token);
+
+    res.cookie("accessToken", accessToken, accessTokenOptions);
+    res.status(200).json({ success: true, data: accessToken });
+  } catch (error) {
     next(error);
   }
 };
