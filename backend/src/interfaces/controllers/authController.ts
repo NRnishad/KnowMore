@@ -13,6 +13,7 @@ import {
   sendResetOtp,
   verifyResendOtp,
 } from "../../application/use-cases/user/resetPassword";
+import { AdminLoginUseCase } from "../../application/use-cases/admin/adminLogin";
 import {
   accessTokenOptions,
   refreshTokenOptions,
@@ -250,3 +251,75 @@ export const refreshTokenHandler = async (
   }
 };
 
+//refresh admin access token after expire
+export const refreshAdminTokenHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const token = req.cookies.adminRefreshToken;
+    if(!token) {
+      throw new CustomError('Admin refresh token not found')
+    }
+    const adminAccessToken = await refreshAccessToken(token);
+
+    res.cookie("adminAccessToken", adminAccessToken, accessTokenOptions);
+    res.status(200).json({ success: true, data: adminAccessToken });
+  } catch (error) {
+    
+    next(error);
+  }
+};
+
+
+
+export const adminLoginHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+    const adminLoginUseCase = new AdminLoginUseCase(userRepository);
+    const response = await adminLoginUseCase.execute(email, password);
+    if (!response) {
+      throw new CustomError("Something went wrong", 400);
+    }
+    res.cookie("adminRefreshToken", response.refreshToken, refreshTokenOptions);
+    res.cookie("adminAccessToken", response.accessToken, accessTokenOptions);
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        user: response.user,
+        token: response.accessToken,
+      });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const adminLogoutHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    //clear cookies for access and refreshtoken
+    res.clearCookie("adminAccessToken", { httpOnly: true, 
+      sameSite: config.app.ENVIRONMENT === 'production' ? "none" : "strict", 
+      secure: config.app.ENVIRONMENT === 'production' });
+    res.clearCookie("adminRefreshToken", {
+      httpOnly: true,
+      sameSite: config.app.ENVIRONMENT === 'production' ? "none" : "strict", 
+      secure: config.app.ENVIRONMENT === 'production'
+    });
+
+    const message = logout();
+    res.status(200).json({ success: true, message });
+  } catch (error) {
+    next(error);
+  }
+};
