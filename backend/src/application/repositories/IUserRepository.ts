@@ -15,6 +15,17 @@ export interface IUserRepository{
     createUser(user:Partial<IUser>) : Promise<IUser>
     
     save(user:IUser) : Promise<IUser>
-    
-   
-   }
+    getAllUsersExcluded(userId:string): Promise<IUser[]>
+    getAllUsers():Promise<IUser[]>
+    getAllInstructorsListForUser(userId: string): Promise<IUser[]>
+    countAll() :Promise<number>;
+    countByStatus(status:string):Promise<number>
+    countByRole():Promise<{student: number, instructor:number, admin: number}>
+    getRegistrationsOverTime(timeFrame: string):Promise<{date: string, count: number}[]>
+    getTopInstructors(limit:number):Promise<IUser[]>
+
+    //admin
+    getAllUsersAdminWithFilter ( search: string, page: number, limit: number): Promise<{users: IUser[]; total: number}> 
+    updateUserStatusAdmin(userId:string, status: string):Promise<IUser | null>
+    updateUserRoleAdmin(userId:string, role: string):Promise<IUser | null>
+}
