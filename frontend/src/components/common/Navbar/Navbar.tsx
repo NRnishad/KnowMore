@@ -8,33 +8,33 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LuHeart } from "react-icons/lu";
 import { IoChatbubblesOutline } from "react-icons/io5";
-// import { getWishlistCourseIds } from "@/api/student";
-// import { clearWishlist, setWishlistIds } from "@/features/wishlistSlice";
+import { getWishlistCourseIds } from "@/api/student";
+import { clearWishlist, setWishlistIds } from "@/features/wishlistSlice";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  // const wishlistCourseIds =
-  //   useAppSelector((state) => state.wishlist.courseIds) || [];
+  const wishlistCourseIds =
+    useAppSelector((state) => state.wishlist.courseIds) || [];
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   const getWishlistCount = async () => {
-  //     try {
-  //       const response = await getWishlistCourseIds();
-  //       const courseIds = response.data || [];
-  //       dispatch(setWishlistIds({ courseIds: courseIds }));
-  //     } catch (error) {
-  //       console.error("getting wishlist course ids error", error);
-  //     }
-  //   };
-  //   if (isAuthenticated) {
-  //     getWishlistCount();
-  //   } else {
-  //     dispatch(clearWishlist());
-  //   }
-  // }, [dispatch, user]);
+  useEffect(() => {
+    const getWishlistCount = async () => {
+      try {
+        const response = await getWishlistCourseIds();
+        const courseIds = response.data || [];
+        dispatch(setWishlistIds({ courseIds: courseIds }));
+      } catch (error) {
+        console.error("getting wishlist course ids error", error);
+      }
+    };
+    if (isAuthenticated) {
+      getWishlistCount();
+    } else {
+      dispatch(clearWishlist());
+    }
+  }, [dispatch, user]);
 
   let Links = [
     {
@@ -62,20 +62,20 @@ const Navbar = () => {
       path: "/chat",
       icon: <IoChatbubblesOutline className="hidden md:block" />,
     },
-    // {
-    //   name: "Wishlist",
-    //   path: "/wishlist",
-    //   icon: (
-    //     <div className="relative">
-    //       <LuHeart className="hidden md:block" />
-    //       {wishlistCourseIds.length > 0 && (
-    //         <div className="absolute -top-2 -right-2  bg-red-500 text-white text-xs rounded-full flex items-center justify-center min-w-4 px-auto h-4">
-    //           {wishlistCourseIds.length}
-    //         </div>
-    //       )}
-    //     </div>
-    //   ),
-    // },
+    {
+      name: "Wishlist",
+      path: "/wishlist",
+      icon: (
+        <div className="relative">
+          <LuHeart className="hidden md:block" />
+          {wishlistCourseIds.length > 0 && (
+            <div className="absolute -top-2 -right-2  bg-red-500 text-white text-xs rounded-full flex items-center justify-center min-w-4 px-auto h-4">
+              {wishlistCourseIds.length}
+            </div>
+          )}
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -157,7 +157,7 @@ const Navbar = () => {
                     <img
                       src={
                         user?.profileImageUrl ||
-                        "https://avatar.iran.liara.run/public/29"
+                        "https://avatar.iran.liara.run/public/36"
                       }
                       alt="Avatar"
                       className="w-full h-full object-cover"

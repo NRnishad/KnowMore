@@ -2,7 +2,9 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 import authReducer from "../features/authSlice";
-
+import adminReducer from "../features/adminSlice";
+import chatReducer from '../features/chatSlice'
+import wishlistReducer from '../features/wishlistSlice'
 
 const userPersistConfig = {
   key: "auth",
@@ -10,11 +12,29 @@ const userPersistConfig = {
   whitelist: ["user", "isAuthenticated"],
 };
 
+const adminPersistConfig = {
+  key: "admin",
+  storage,
+  whitelist: ["user", "isAuthenticated"],
+};
 
+const chatPersistConfig = {
+  key: 'chat',
+  storage,
+  whitelist: ['messages', 'selectedChat']
+}
 
-const rootReducer = combineReducers({ 
+const wishlistPersistConfig = {
+  key: 'wishlist',
+  storage,
+  whitelist:['courseIds']
+}
+
+const rootReducer = combineReducers({
+  admin: persistReducer(adminPersistConfig, adminReducer),
   auth: persistReducer(userPersistConfig, authReducer),
-
+  chat: persistReducer(chatPersistConfig, chatReducer),
+  wishlist: persistReducer(wishlistPersistConfig, wishlistReducer)
 });
 
 export const store = configureStore({

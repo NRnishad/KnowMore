@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-12">
           {/* Logo and About */}
           <div className="lg:col-span-4">
-             <img src={Logo} alt="Logo" className="h-auto w-40" />
+             <img src={Logo} alt="Logo" className="h-auto w-36" />
           </div>
  {/* Links Sections */}
  <div className="grid gap-8 sm:grid-cols-3 md:gap-4 lg:col-span-6">

@@ -1,7 +1,7 @@
 import { useAppSelector } from "@/app/hooks";
 import { useNavigate } from "react-router-dom";
 import HeroSection from "../../components/common/Hero/HeroSection";
-// import Courses from "./Courses";
+import Courses from "./Courses";
 import FeaturesSection from "./FeatureSection";
 
 function Home() {
@@ -29,7 +29,7 @@ function Home() {
       <FeaturesSection />
       </div>
       <div>
-        {/* <Courses /> */}
+        <Courses />
       </div>
     </div>
   );

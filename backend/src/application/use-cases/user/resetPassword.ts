@@ -27,7 +27,7 @@ One Time Password (OTP): ${otp}
 This OTP is valid for 10 minutes from the receipt of this email.
 
 Best regards,
-KnowMore.`
+knowMore.`
    );
 
    return {message : 'password reset OTP sent successfully.', otp}

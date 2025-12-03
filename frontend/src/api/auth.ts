@@ -1,6 +1,6 @@
 import api from "@/axios/auth/authInterceptors";
 import { config } from "@/config/config";
-
+import { RegisterInstructorFormValues } from "@/types/instructor";
 
 const API_URL = config.app.PORT;
 
@@ -87,7 +87,15 @@ export const handleEditUserAPI = async (firstName: string, lastName : string, em
   };
 
 
-
+export const handleRegisterToInstructor = async (data : RegisterInstructorFormValues, userId: string) => {
+    try {
+        const response = await api.post(`${API_URL}/auth/instructor-register`, {formData: data, userId}  )
+        return response.data;
+    } catch (error: any) {
+        console.error('Instructor registration failed', error.response?.data || error.message)
+        throw error
+    }
+}
 
 export const changeProfileImage = async(userId:string, formData: FormData) => {
     try {
