@@ -81,6 +81,7 @@ app.use(express.json());
 dotenv.config();
 //cookie parser 
 app.use(cookieParser());
+app.set('trust proxy', 1);
 
 //CORS setup 
 app.use(cors({
