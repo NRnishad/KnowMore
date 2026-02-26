@@ -15,7 +15,7 @@ export const getAllCoursesController = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+) => { 
   try {
     const {
       limit = 5,
