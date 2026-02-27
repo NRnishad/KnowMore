@@ -10,18 +10,30 @@ const PurchaseSuccess: React.FC = () => {
   const orderId = queryParams.get("orderId");
 
   const [status, setStatus] = useState<'verifying' | 'success' | 'failed'>('verifying');
+  const [errorMsg, setErrorMsg] = useState<string>('');
   const hasVerified = useRef(false);
 
   useEffect(() => {
-    if (!sessionId || !orderId || hasVerified.current) return;
+    console.log('PurchaseSuccess URL params:', location.search);
+    console.log('sessionId:', sessionId, '| orderId:', orderId);
+
+    if (!sessionId || !orderId) {
+      setErrorMsg(`Missing params — session_id: ${sessionId ?? 'MISSING'}, orderId: ${orderId ?? 'MISSING'}`);
+      setStatus('failed');
+      return;
+    }
+
+    if (hasVerified.current) return;
     hasVerified.current = true;
 
     const verify = async () => {
       try {
         await verifyPaymentApi(sessionId, orderId);
         setStatus('success');
-      } catch (error) {
-        console.error('Payment verification failed:', error);
+      } catch (error: any) {
+        const msg = error?.message || error?.error || JSON.stringify(error);
+        console.error('Payment verification error:', error);
+        setErrorMsg(msg);
         setStatus('failed');
       }
     };
@@ -33,7 +45,7 @@ const PurchaseSuccess: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white shadow-lg rounded-lg p-6 text-center w-full max-w-md">
-          <div className="text-blue-500 text-5xl mb-4 animate-spin">⏳</div>
+          <div className="text-blue-500 text-5xl mb-4">⏳</div>
           <h1 className="text-xl font-semibold">Verifying your payment...</h1>
           <p className="text-gray-500 mt-2">Please wait a moment.</p>
         </div>
@@ -47,9 +59,16 @@ const PurchaseSuccess: React.FC = () => {
         <div className="bg-white shadow-lg rounded-lg p-6 text-center w-full max-w-md">
           <div className="text-red-500 text-6xl mb-4">❌</div>
           <h1 className="text-2xl font-bold mb-2">Payment Verification Failed</h1>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 mb-2">
             We could not verify your payment. Please contact support if your payment was deducted.
           </p>
+          {/* DEBUG INFO — remove after fixing */}
+          <div className="text-xs text-left bg-gray-100 rounded p-2 mb-4 break-all space-y-1">
+            <p><strong>Error:</strong> {errorMsg || 'Unknown error'}</p>
+            <p><strong>session_id:</strong> {sessionId ?? '❌ MISSING'}</p>
+            <p><strong>orderId:</strong> {orderId ?? '❌ MISSING'}</p>
+            <p><strong>Full URL:</strong> {location.search}</p>
+          </div>
           <button
             onClick={() => navigate('/')}
             className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-full transition"
